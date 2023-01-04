@@ -1,0 +1,72 @@
+html {
+    height: 100%;
+}
+
+body {
+    background-color: #4682B4;
+    height: 100%;
+    margin: 0;
+}
+
+#main {
+    background-color: white;
+    width: 50%;
+    min-height: 100%;
+    margin: auto;
+}
+
+#main > div {
+    padding: 0 10px;
+}
+
+#title {
+    font-size: x-large;
+    font-weight: bold;
+    width: 100%;
+    border-bottom: 1px solid #4682B4;
+}
+
+#output {
+    font-size: small;
+}
+
+#footer {
+    border-top: 1px solid #4682B4;
+    position: sticky;
+    top: 100vh;
+}
+
+#dropzone {
+    color: gray;
+    font-size: large;
+    cursor: pointer;
+    border-color: white;
+    border-radius: 5px;
+    border-style: dashed;
+
+    position: absolute;
+    left: 26%;
+    top: 10%;
+    width: 48%;
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#dropzone:hover, #dropzone.dropready {
+    border-color: skyblue;
+}
+
+#progress {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+#progress > div {
+    background-color: white;
+}
