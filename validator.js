@@ -218,16 +218,16 @@ class Validator {
 })();
 
 
-const fs1 = `%[0-9a-z]`;
-const fs2 = `{.*?}`;
+const ph1 = `%[0-9a-z]`;
+const ph2 = `{.*?}`;
 
 function validateTranslation(s, t) {
 
     let msg = "";
 
     // critical errors
-    if ([...s.matchAll(fs1)].sort().toString() != [...t.matchAll(fs1)].sort().toString()) msg = "format specifiers unmatched (%)";
-    else if ([...s.matchAll(fs2)].sort().toString() != [...t.matchAll(fs2)].sort().toString()) msg = "format specifiers unmatched ({})";
+    if ([...s.matchAll(ph1)].sort().toString() != [...t.matchAll(ph1)].sort().toString()) msg = "placeholders unmatched (%)";
+    else if ([...s.matchAll(ph2)].sort().toString() != [...t.matchAll(ph2)].sort().toString()) msg = "placeholders unmatched ({})";
 
     if (msg) {
         return {
