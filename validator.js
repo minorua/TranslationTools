@@ -112,15 +112,12 @@ class Validator {
 
             reader.onload = (e) => {
                 const xmlStr = e.target.result;
-                const parser = new DOMParser();
-                const dom = parser.parseFromString(xmlStr, "text/xml");
+                const dom = new DOMParser().parseFromString(xmlStr, "text/xml");
+                const root = dom.documentElement;
 
-                const contexts = dom.getElementsByTagName("context");
+                this.lang = root.getAttribute("language");
+                this.contexts = [...root.children];     // HTMLCollection to array
 
-                // HTMLCollection to array
-                for (const context of contexts) {
-                    this.contexts.push(context);
-                }
                 this._validateNextContext(resolve);
             };
         });
@@ -152,7 +149,7 @@ class Validator {
             translation = message.getElementsByTagName("translation")[0];
             type = translation.getAttribute("type");
             if (type === null) {
-                result = validateTranslation(source.textContent, translation.textContent);
+                result = validateTranslation(source.textContent, translation.textContent, this.lang);
                 if (result) {
                     result.context = name;
                     result.source = source.textContent;
@@ -189,6 +186,7 @@ class Validator {
 
 // initialize
 (function() {
+
     const dz = document.getElementById("dropzone");
 
     dz.addEventListener("click", () => {
@@ -215,13 +213,14 @@ class Validator {
         dz.style.display = "none";
         loadFiles(e.dataTransfer.files);
     });
+
 })();
 
 
 const ph1 = `%[0-9a-z]`;
 const ph2 = `{.*?}`;
 
-function validateTranslation(s, t) {
+function validateTranslation(s, t, lang) {
 
     let msg = "";
 
@@ -230,24 +229,33 @@ function validateTranslation(s, t) {
     else if ([...s.matchAll(ph2)].sort().toString() != [...t.matchAll(ph2)].sort().toString()) msg = "placeholders unmatched ({})";
 
     if (msg) {
+
         return {
             level: ERROR_LEVEL.CRITICAL,
             msg: msg
         };
+
     }
 
     // warnings
     if (t.trim() == "" && s.trim() != "") msg = "empty translation";
     else if (s.slice(-3) == "..." && t.slice(-3) != "...") msg = "missing ... (3 dots)";
-    else if (s.slice(-1) == "…" && t.slice(-3) != "...") msg = "missing ... (must be 3 dots)";
-    else if (t.indexOf("…") != -1) msg = "ellipsis used";
-    else if (s.indexOf("....") == -1 && s.indexOf("……") == -1 && t.indexOf("....") != -1) msg = ".... (4 dots) used";
+
+    if (lang == "ja") {
+
+        if (s.slice(-1) == "…" && t.slice(-3) != "...") msg = "missing ... (must be 3 dots)";
+        else if (t.indexOf("…") != -1) msg = "ellipsis used";
+        else if (s.indexOf("....") == -1 && s.indexOf("……") == -1 && t.indexOf("....") != -1) msg = ".... (4 dots) used";
+
+    }
 
     if (msg) {
+
         return {
             level: ERROR_LEVEL.WARNING,
             msg: msg
         };
+
     }
 
     return null;
