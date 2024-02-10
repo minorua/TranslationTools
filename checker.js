@@ -27,12 +27,12 @@ function loadFiles(files) {
 
     for (const file of files) {
 
-        const v = new Validator(setProgress);
+        const v = new Checker(setProgress);
 
         result = result.then(() => {
 
             setStatusText("Parsing " + file.name + "...");
-            return v.loadAndValidate(file);
+            return v.loadAndCheck(file);
 
         }).then(() => {
 
@@ -79,7 +79,7 @@ function loadFiles(files) {
 }
 
 
-class Validator {
+class Checker {
 
     constructor(progressFunc) {
 
@@ -101,7 +101,7 @@ class Validator {
         this.contexts = [];
     }
 
-    loadAndValidate(file) {
+    loadAndCheck(file) {
 
         this.counter = 0;
 
@@ -118,12 +118,12 @@ class Validator {
                 this.lang = root.getAttribute("language");
                 this.contexts = [...root.children];     // HTMLCollection to array
 
-                this._validateNextContext(resolve);
+                this._checkNextContext(resolve);
             };
         });
     }
 
-    _validateNextContext(resolve) {
+    _checkNextContext(resolve) {
 
         if (this.contexts.length == 0) {
             this.progressFunc(1);
@@ -149,7 +149,7 @@ class Validator {
             translation = message.getElementsByTagName("translation")[0];
             type = translation.getAttribute("type");
             if (type === null) {
-                result = validateTranslation(source.textContent, translation.textContent, this.lang);
+                result = checkTranslation(source.textContent, translation.textContent, this.lang);
                 if (result) {
                     result.context = name;
                     result.source = source.textContent;
@@ -172,13 +172,13 @@ class Validator {
         if (this.counter == this.CONTEXTS_PER_JOB) {
             const _this = this;
             setTimeout(() => {
-                _this._validateNextContext(resolve);
+                _this._checkNextContext(resolve);
             }, 0);
             this.counter = 0;
             this.progressFunc((this.stats.contextCount - this.contexts.length) / this.stats.contextCount);
         }
         else {
-            this._validateNextContext(resolve);
+            this._checkNextContext(resolve);
         }
     }
 }
@@ -220,7 +220,7 @@ class Validator {
 const ph1 = `%[0-9a-z]`;
 const ph2 = `{.*?}`;
 
-function validateTranslation(s, t, lang) {
+function checkTranslation(s, t, lang) {
 
     let msg = "";
 
