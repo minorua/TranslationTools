@@ -124,6 +124,15 @@ function loadFiles(files) {
         });
     }
     result = result.then(() => {
+        console.log("Unknown words:");
+        console.log(token);
+
+        let words = [];
+        for (let k of Object.keys(token).sort()) {
+            words.push("<div>" + k.replace("<", "&lt;").replace(">", "&gt") + ": " + token[k] + "</div>");
+        }
+        addListItem("<li>" + words.join("") + "</li>");
+
         setStatusText("Completed!", 2000);
     });
 }
@@ -267,6 +276,15 @@ function checkTranslation(s, t, lang) {
         if (tokenizer) {
 
             var path = tokenizer.tokenize(t);
+            var w;
+            for (let c of path) {
+                w = c.surface_form;
+                if (isNaN(w) && c.word_type == "UNKNOWN") {
+                    if (s.indexOf(w) == -1) {
+                        token[w] = (token[w] === undefined) ? 1 : token[w] + 1;
+                    }
+                }
+            }
             console.log(path);
 
         }
