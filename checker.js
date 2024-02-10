@@ -3,15 +3,30 @@ const ERROR_LEVEL = {
     CRITICAL: 2
 };
 
-var tokenizer;
+var setProgress, setStatusText;
+var tokenizer, token;
 
 window.addEventListener("load", function () {
 
-    kuromoji.builder({dicPath: "./lib/kuromoji.js/dict"}).build(function (err, tknzr) {
+    const progress = document.getElementById("progress"),
+    progressBar = progress.getElementsByTagName("progress")[0];
 
-        tokenizer = tknzr;
+    setProgress = (p) => {
+        progressBar.setAttribute("value", p);
+    };
 
-    });
+    const status = document.getElementById("status");
+    setStatusText = (text, duration) => {
+        status.innerHTML = text;
+
+        progress.style.display = (text) ? "block" : "none";
+
+        if (duration) {
+            setTimeout(() => {
+                setStatusText();
+            }, duration);
+        }
+    };
 
     const dz = document.getElementById("dropzone");
 
@@ -40,6 +55,16 @@ window.addEventListener("load", function () {
         loadFiles(e.dataTransfer.files);
     });
 
+    setStatusText("Loading tokenizer...");
+
+    kuromoji.builder({dicPath: "./lib/kuromoji.js/dict"}).build(function (err, tknzr) {
+
+        tokenizer = tknzr;
+
+        setStatusText("Ready!", 1000);
+
+    });
+
 });
 
 
@@ -49,18 +74,7 @@ function loadFiles(files) {
         outList.innerHTML += html;
     };
 
-    const progress = document.getElementById("progress"),
-          progressBar = progress.getElementsByTagName("progress")[0];
-    progress.style.display = "block";
-
-    const setProgress = (p) => {
-        progressBar.setAttribute("value", p);
-    };
-
-    const status = document.getElementById("status");
-    const setStatusText = (text) => {
-        status.innerHTML = text;
-    };
+    token = {};
 
     let result = Promise.resolve();
 
@@ -110,10 +124,7 @@ function loadFiles(files) {
         });
     }
     result = result.then(() => {
-        setStatusText("Completed!");
-        setTimeout(() => {
-            progress.style.display = "none";
-        }, 2000);
+        setStatusText("Completed!", 2000);
     });
 }
 
