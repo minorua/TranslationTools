@@ -3,6 +3,45 @@ const ERROR_LEVEL = {
     CRITICAL: 2
 };
 
+var tokenizer;
+
+window.addEventListener("load", function () {
+
+    kuromoji.builder({dicPath: "./lib/kuromoji.js/dict"}).build(function (err, tknzr) {
+
+        tokenizer = tknzr;
+
+    });
+
+    const dz = document.getElementById("dropzone");
+
+    dz.addEventListener("click", () => {
+        let btn = document.createElement("input");
+        btn.type = "file";
+        btn.onchange = (e) => {
+            dz.style.display = "none";
+            loadFiles(e.target.files);
+        };
+        btn.click();
+    });
+
+    dz.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dz.classList.add("dropready");
+    });
+
+    dz.addEventListener("dragleave", (e) => {
+        dz.classList.remove("dropready");
+    });
+
+    dz.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dz.style.display = "none";
+        loadFiles(e.dataTransfer.files);
+    });
+
+});
+
 
 function loadFiles(files) {
     const outList = document.getElementById("output").getElementsByTagName("ul")[0];
@@ -184,39 +223,6 @@ class Checker {
 }
 
 
-// initialize
-(function() {
-
-    const dz = document.getElementById("dropzone");
-
-    dz.addEventListener("click", () => {
-        let btn = document.createElement("input");
-        btn.type = "file";
-        btn.onchange = (e) => {
-            dz.style.display = "none";
-            loadFiles(e.target.files);
-        };
-        btn.click();
-    });
-
-    dz.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dz.classList.add("dropready");
-    });
-
-    dz.addEventListener("dragleave", (e) => {
-        dz.classList.remove("dropready");
-    });
-
-    dz.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dz.style.display = "none";
-        loadFiles(e.dataTransfer.files);
-    });
-
-})();
-
-
 const ph1 = `%[0-9a-z]`;
 const ph2 = `{.*?}`;
 
@@ -246,6 +252,13 @@ function checkTranslation(s, t, lang) {
         if (s.slice(-1) == "…" && t.slice(-3) != "...") msg = "missing ... (must be 3 dots)";
         else if (t.indexOf("…") != -1) msg = "ellipsis used";
         else if (s.indexOf("....") == -1 && s.indexOf("……") == -1 && t.indexOf("....") != -1) msg = ".... (4 dots) used";
+
+        if (tokenizer) {
+
+            var path = tokenizer.tokenize(t);
+            console.log(path);
+
+        }
 
     }
 
