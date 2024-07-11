@@ -13,7 +13,39 @@
             <div id="output"><ul></ul></div>
             <div id="footer"><a href="https://github.com/minorua">GitHub</a></div>
         </div>
-        <div id="dropzone">Drag and drop a .ts file here</div>
+        <div id="panel">
+            <div><span class="method">- Open a local .ts file:</span> <button id="open_button">Open</button></div>
+            <br>
+            <div>
+                <div class="method">- Fetch a .ts file from GitHub:</div>
+                <table>
+                    <tr>
+                        <td>
+                            <div><label for="lang">Language</label></div>
+                            <div>
+                                <select id="lang" name="lang" size="15">
+                                    <option>ja</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td>
+                            <div><label for="branch">Branch</label></div>
+                            <div>
+                                <select id="branch" name="branch" size="15">
+                                    <option>release-3_38</option>
+                                    <option>release-3_34</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div id="fetch_button_line"><button id="fetch_button">Fetch & Open</button></div>
+                        </td>
+                    </tr>
+                </div>
+            </div>
+        </div>
         <div id="progress">
             <div id="status"></div>
             <progress value="0"></progress>

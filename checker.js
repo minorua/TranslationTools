@@ -28,7 +28,7 @@ window.addEventListener("load", function () {
         }
     };
 
-    const dz = document.getElementById("dropzone");
+    const dz = document.getElementById("open_button");
 
     dz.addEventListener("click", () => {
         let btn = document.createElement("input");
@@ -51,15 +51,60 @@ window.addEventListener("load", function () {
 
     dz.addEventListener("drop", (e) => {
         e.preventDefault();
-        dz.style.display = "none";
         loadFiles(e.dataTransfer.files);
     });
+
+    const fetchButton = document.getElementById("fetch_button");
+
+    fetchButton.addEventListener("click", () => {
+
+        const lang = document.getElementById("lang").value,
+              branch = document.getElementById("branch").value;
+
+        if (!lang || !branch) {
+
+            alert("Select one of languages and one of branches.");
+            return;
+
+        }
+
+        setStatusText("Fetching qgis_" + lang + ".ts in " + branch + " branch from GitHub.")
+        const url = "https://raw.githubusercontent.com/qgis/QGIS/" + branch + "/i18n/qgis_" + lang + ".ts";
+        fetch(url).then((res) => {
+
+            res.text().then((xmlStr) => {
+
+                const v = new Checker(setProgress);
+
+                v.load(xmlStr);
+                v.check().then(() => {
+
+                    writeResult(v);
+                    setStatusText("Completed!", 2000);
+
+                });
+
+            });
+
+        });
+
+    });
+
 
     setStatusText("Loading tokenizer...");
 
     kuromoji.builder({dicPath: "./lib/kuromoji.js/dict"}).build(function (err, tknzr) {
 
-        tokenizer = tknzr;
+        if (err) {
+
+            console.warn("Failed to load tokenizer.");
+
+        }
+        else {
+
+            tokenizer = tknzr;
+
+        }
 
         setStatusText("Ready!", 1000);
 
@@ -68,7 +113,54 @@ window.addEventListener("load", function () {
 });
 
 
+function writeResult(checker) {
+
+    document.getElementById("panel").style.display = "none";
+
+    const outList = document.getElementById("output").getElementsByTagName("ul")[0];
+    const addListItem = (html) => {
+        outList.innerHTML += html;
+    };
+
+    let r, html = "";
+
+    html += "<li>" + (checker.filename || "Unknown") + ":";
+    html += " <ul>";
+
+    html += "  <li>" + checker.stats.contextCount + " contexts, " + checker.stats.messageCount + " messages, " + checker.stats.untranslatedCount + " untranslated</li>";
+
+    html += "  <li>" + checker.results[ERROR_LEVEL.CRITICAL].length + " critical errors";
+    html += "   <ul>";
+    for (r of checker.results[ERROR_LEVEL.CRITICAL]) {
+        html += "<li>" + r.msg;
+        html += "<div>[" + r.context + "]</div>";
+        html += "<div>" + r.source + "</div>";
+        html += "<div>" + r.translation + "</div></li>";
+    }
+    html += "   </ul>";
+    html += "  </li>";
+
+    html += "  <li>" + checker.results[ERROR_LEVEL.WARNING].length + " warnings";
+    html += "   <ul>";
+    for (r of checker.results[ERROR_LEVEL.WARNING]) {
+        html += "<li>" + r.msg;
+        html += "<div>[" + r.context + "]</div>";
+        html += "<div>" + r.source + "</div>";
+        html += "<div>" + r.translation + "</div></li>";
+    }
+    html += "   </ul>";
+    html += "  </li>";
+
+    html += " </ul>";
+    html += "</li>";
+
+    addListItem(html);
+
+}
+
+
 function loadFiles(files) {
+
     const outList = document.getElementById("output").getElementsByTagName("ul")[0];
     const addListItem = (html) => {
         outList.innerHTML += html;
@@ -85,42 +177,17 @@ function loadFiles(files) {
         result = result.then(() => {
 
             setStatusText("Parsing " + file.name + "...");
-            return v.loadAndCheck(file);
+            return v.loadFile(file);
 
         }).then(() => {
 
-            let r, html = "";
-            html += "<li>" + file.name + ":";
-            html += " <ul>";
+            return v.check();
 
-            html += "  <li>" + v.stats.contextCount + " contexts, " + v.stats.messageCount + " messages, " + v.stats.untranslatedCount + " untranslated</li>";
+        }).then(() => {     // TODO: remove
 
-            html += "  <li>" + v.results[ERROR_LEVEL.CRITICAL].length + " critical errors";
-            html += "   <ul>";
-            for (r of v.results[ERROR_LEVEL.CRITICAL]) {
-                html += "<li>" + r.msg;
-                html += "<div>[" + r.context + "]</div>";
-                html += "<div>" + r.source + "</div>";
-                html += "<div>" + r.translation + "</div></li>";
-            }
-            html += "   </ul>";
-            html += "  </li>";
+            v.filename = file.name;
+            writeResult(v);
 
-            html += "  <li>" + v.results[ERROR_LEVEL.WARNING].length + " warnings";
-            html += "   <ul>";
-            for (r of v.results[ERROR_LEVEL.WARNING]) {
-                html += "<li>" + r.msg;
-                html += "<div>[" + r.context + "]</div>";
-                html += "<div>" + r.source + "</div>";
-                html += "<div>" + r.translation + "</div></li>";
-            }
-            html += "   </ul>";
-            html += "  </li>";
-
-            html += " </ul>";
-            html += "</li>";
-
-            addListItem(html);
         });
     }
     result = result.then(() => {
@@ -160,7 +227,18 @@ class Checker {
         this.contexts = [];
     }
 
-    loadAndCheck(file) {
+    load(xmlStr) {
+
+        return new Promise((resolve) => {
+
+            this.parse(xmlStr);
+            resolve();
+
+        });
+
+    }
+
+    loadFile(file) {
 
         this.counter = 0;
 
@@ -170,16 +248,34 @@ class Checker {
             reader.readAsText(file);
 
             reader.onload = (e) => {
-                const xmlStr = e.target.result;
-                const dom = new DOMParser().parseFromString(xmlStr, "text/xml");
-                const root = dom.documentElement;
 
-                this.lang = root.getAttribute("language");
-                this.contexts = [...root.children];     // HTMLCollection to array
+                this.parse(e.target.result);
+                resolve();
 
-                this._checkNextContext(resolve);
             };
+
         });
+
+    }
+
+    parse(xmlStr) {
+
+        const dom = new DOMParser().parseFromString(xmlStr, "text/xml");
+        const root = dom.documentElement;
+
+        this.lang = root.getAttribute("language");
+        this.contexts = [...root.children];     // HTMLCollection to array
+
+    }
+
+    check() {
+
+        return new Promise((resolve) => {
+
+            this._checkNextContext(resolve);
+
+        });
+
     }
 
     _checkNextContext(resolve) {

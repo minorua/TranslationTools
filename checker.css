@@ -36,26 +36,34 @@ body {
     top: 100vh;
 }
 
-#dropzone {
-    color: gray;
-    font-size: large;
-    cursor: pointer;
-    border-color: white;
-    border-radius: 5px;
-    border-style: dashed;
-
+#panel {
     position: absolute;
     left: 26%;
     top: 10%;
     width: 48%;
     height: 80%;
+}
+
+.method {
+    color: gray;
+    font-size: large;
+}
+
+#panel table {
     display: flex;
-    align-items: center;
     justify-content: center;
 }
 
-#dropzone:hover, #dropzone.dropready {
-    border-color: skyblue;
+#panel td {
+    padding: 10px;
+}
+
+#panel select {
+    width: 120px;
+}
+
+#fetch_button_line {
+    text-align: center;
 }
 
 #progress {
