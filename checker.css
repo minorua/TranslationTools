@@ -1,24 +1,32 @@
 html {
+
     height: 100%;
+
 }
 
 body {
-    background-color: #4682B4;
+
     height: 100%;
     margin: 0;
+
 }
 
 #main {
+
     background-color: white;
     min-height: 100%;
     margin: auto;
+
 }
 
 #main > div {
+
     padding: 0 10px;
+
 }
 
 #title {
+
     margin: 0;
     padding: 0.5em 1em;
     width: 100%;
@@ -27,57 +35,136 @@ body {
     line-height: 1em;
     color: #EEEEEE;
     background-color: #124766;
+
 }
 
-#output {
+#result {
+
     font-size: small;
+
+}
+
+section {
+
+    padding-bottom: 30px;
+
+}
+
+h3 {
+
+    margin: 0;
+    padding: 10px;
+    height: 20px;
+    border-bottom: 1px solid gray;
+    background-color: #EEEEEE;
+
+}
+
+h3 > span.count {
+
+    display: inline-block;
+    min-width: 30px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    margin-left: 5px;
+    font-size: smaller;
+
+}
+
+h4 {
+
+    padding: 3px 8px;
+
+}
+
+section.error h4 {
+
+    background-color: rgba(255, 0, 0, 0.5)
+
+}
+
+section.warning h4 {
+
+    background-color: rgba(255, 255, 0, 0.5)
+
+}
+
+h4 > span.count {
+
+    display: inline-block;
+    min-width: 20px;
+    height: 15px;
+    text-align: center;
+    line-height: 15px;
+    margin-left: 10px;
+    font-size: smaller;
+
 }
 
 #footer {
+
     border-top: 1px solid #4682B4;
     position: sticky;
     top: 100vh;
+
 }
 
 #panel {
+
     position: absolute;
     left: 26%;
     top: 10%;
     width: 48%;
     height: 80%;
+
 }
 
 .method {
+
     color: gray;
     font-size: large;
+
 }
 
 #panel table {
+
     display: flex;
     justify-content: center;
+
 }
 
 #panel td {
+
     padding: 10px;
+
 }
 
 #panel select {
+
     width: 120px;
+
 }
 
 #fetch_button_line {
+
     text-align: center;
+
 }
 
 #progress {
+
     display: none;
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+
 }
 
 #progress > div {
+
     background-color: white;
+
 }

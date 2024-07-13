@@ -68,6 +68,8 @@ window.addEventListener("load", function () {
 
         }
 
+        document.getElementById("panel").style.display = "none";
+
         const filename = "qgis_" + lang + ".ts";
 
         setStatusText("Fetching " + filename + ' in "' + branch + '" branch from GitHub...');
@@ -118,56 +120,79 @@ window.addEventListener("load", function () {
 
 function writeResult(checker) {
 
-    document.getElementById("panel").style.display = "none";
+    const escape = function (str) {
 
-    const outList = document.getElementById("output").getElementsByTagName("ul")[0];
-    const addListItem = (html) => {
-        outList.innerHTML += html;
+        return str.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;');
+
     };
 
-    let r, html = "";
+    const htmlGroupdedByMsg = function (res_list) {
 
-    html += "<li>" + (checker.filename || "Unknown") + ":";
-    html += " <ul>";
+        let html = '';
+        let groups = {};
 
-    html += "  <li>" + checker.stats.contextCount + " contexts, " + checker.stats.messageCount + " messages, " + checker.stats.untranslatedCount + " untranslated</li>";
+        for (let r of res_list) {
 
-    html += "  <li>" + checker.results[ERROR_LEVEL.CRITICAL].length + " critical errors";
-    html += "   <ul>";
-    for (r of checker.results[ERROR_LEVEL.CRITICAL]) {
-        html += "<li>" + r.msg;
-        html += "<div>[" + r.context + "]</div>";
-        html += "<div>" + r.source + "</div>";
-        html += "<div>" + r.translation + "</div></li>";
-    }
-    html += "   </ul>";
-    html += "  </li>";
+            if (groups[r.msg] === undefined) {
 
-    html += "  <li>" + checker.results[ERROR_LEVEL.WARNING].length + " warnings";
-    html += "   <ul>";
-    for (r of checker.results[ERROR_LEVEL.WARNING]) {
-        html += "<li>" + r.msg;
-        html += "<div>[" + r.context + "]</div>";
-        html += "<div>" + r.source + "</div>";
-        html += "<div>" + r.translation + "</div></li>";
-    }
-    html += "   </ul>";
-    html += "  </li>";
+                groups[r.msg] = [r];
 
-    html += " </ul>";
-    html += "</li>";
+            }
+            else {
 
-    addListItem(html);
+                groups[r.msg].push(r);
+
+            }
+
+        }
+
+        for (let [msg, items] of Object.entries(groups)) {
+
+            html += '<h4>' + msg + ' <span class="count">(' + items.length + ')</span></h4>';
+            html += '<ul>';
+            for (let r of items) {
+
+                html += '<li><div>[' + r.context + ']</div>';
+                html += '<div>' + escape(r.source) + '</div>';
+                html += '<div>' + escape(r.translation) + '</div></li>';
+
+            }
+            html += '</ul>';
+
+        }
+
+        return html;
+    };
+
+    let html = '';
+
+    html += '<h2>' + (checker.filename || 'Unknown') + '</h2>';
+
+    html += '<section class="stats">';
+    html += '<h3>Statistics</h3>';
+    html += '<ul>';
+    html += ' <li>' + checker.stats.contextCount + ' contexts, ' + checker.stats.messageCount + ' messages, ' + checker.stats.untranslatedCount + ' untranslated</li>';
+    html += '</ul>';
+    html += '</section>';
+
+    html += '<section class="error">';
+    html += '<h3>Critical Errors <span class="count">(' + checker.results[ERROR_LEVEL.CRITICAL].length + ')</span></h3>';
+    html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.CRITICAL]);
+    html += '</section>';
+
+    html += '<section class="warning">';
+    html += '<h3>Warnings <span class="count">(' + checker.results[ERROR_LEVEL.WARNING].length + ')</span></h3>';
+    html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.WARNING]);
+    html += '</section>';
+
+    document.getElementById("result").innerHTML += html;
 
 }
 
 
 function loadFiles(files) {
 
-    const outList = document.getElementById("output").getElementsByTagName("ul")[0];
-    const addListItem = (html) => {
-        outList.innerHTML += html;
-    };
+    document.getElementById("panel").style.display = "none";
 
     token = {};
 
@@ -201,7 +226,8 @@ function loadFiles(files) {
         for (let k of Object.keys(token).sort()) {
             words.push("<div>" + k.replace("<", "&lt;").replace(">", "&gt") + ": " + token[k] + "</div>");
         }
-        addListItem("<li>" + words.join("") + "</li>");
+
+        document.getElementById("result").innerHTML += "<div>" + words.join("") + "</div>";
 
         setStatusText("Completed!", 2000);
     });
