@@ -68,14 +68,17 @@ window.addEventListener("load", function () {
 
         }
 
-        setStatusText("Fetching qgis_" + lang + ".ts in " + branch + " branch from GitHub.")
-        const url = "https://raw.githubusercontent.com/qgis/QGIS/" + branch + "/i18n/qgis_" + lang + ".ts";
+        const filename = "qgis_" + lang + ".ts";
+
+        setStatusText("Fetching " + filename + ' in "' + branch + '" branch from GitHub...');
+        const url = "https://raw.githubusercontent.com/qgis/QGIS/" + branch + "/i18n/" + filename;
         fetch(url).then((res) => {
 
             res.text().then((xmlStr) => {
 
                 const v = new Checker(setProgress);
 
+                v.filename = filename + ' in "' + branch + '" branch';
                 v.load(xmlStr);
                 v.check().then(() => {
 
