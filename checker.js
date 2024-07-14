@@ -72,29 +72,63 @@ window.addEventListener("load", function () {
 
         const filename = "qgis_" + lang + ".ts";
 
-        setStatusText("Fetching " + filename + ' in "' + branch + '" branch from GitHub...');
+        setStatusText('Fetching ' + filename + ' in "' + branch + '" branch from GitHub...');
+
         const url = "https://raw.githubusercontent.com/qgis/QGIS/" + branch + "/i18n/" + filename;
-        fetch(url).then((res) => {
 
-            res.text().then((xmlStr) => {
+        // download progress:
+        // https://developer.mozilla.org/ja/docs/Web/API/Streams_API/Using_readable_streams
 
-                const v = new Checker(setProgress);
+        fetch(url)
+        .then((res) => {
 
-                v.filename = filename + ' in "' + branch + '" branch';
-                v.load(xmlStr);
-                v.check().then(() => {
+            const total = parseInt(res.headers.get('content-length'), 10);
+            let loaded = 0;
 
-                    writeResult(v);
-                    setStatusText("Completed!", 2000);
+            const reader = res.body.getReader();
+            return new ReadableStream({
+                start(controller) {
+                    return pump();
+                    function pump() {
+                        return reader.read().then(({done, value}) => {
 
-                });
+                            if (done) {
+                                controller.close();
+                                setProgress(1);
+                                return;
+                            }
+
+                            loaded += value.byteLength;
+                            setProgress(loaded / total);
+
+                            controller.enqueue(value);
+                            return pump();
+                        });
+                    }
+                }
+            });
+        })
+        .then((stream) => new Response(stream))
+        .then((res) => res.text())
+        .then((xmlStr) => {
+
+            setStatusText('Checking translations...');
+            setProgress(0);
+
+            const v = new Checker(setProgress);
+
+            v.filename = filename + ' in "' + branch + '" branch';
+            v.load(xmlStr);
+            v.check().then(() => {
+
+                writeResult(v);
+                setStatusText();
 
             });
 
-        });
+        }).catch((e) => console.error(e));
 
     });
-
 
     setStatusText("Loading tokenizer...");
 
