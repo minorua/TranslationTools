@@ -3,6 +3,12 @@ const ERROR_LEVEL = {
     CRITICAL: 2
 };
 
+const LANG_LIST = [
+    'ar', 'az', 'bg', 'bs', 'ca', 'cs', 'da', 'de', 'en_US', 'es', 'et', 'eu', 'fi', 'fr',
+    'gl', 'hu', 'is', 'it', 'ja', 'ko', 'lt', 'lv', 'nb', 'nl', 'pl', 'pt_BR', 'pt_PT', 'ro',
+    'ru', 'sc', 'sk', 'sv', 'tr', 'uk', 'vi', 'zh-Hans', 'zh-Hant'
+];
+
 var setProgress, setStatusText;
 var tokenizer, token;
 
@@ -27,6 +33,10 @@ window.addEventListener('load', function () {
             }, duration);
         }
     };
+
+    LANG_LIST.forEach(function (lang) {
+        document.getElementById('lang').options.add(new Option(lang, lang, false));
+    });
 
     const dz = document.getElementById('open_button');
 
