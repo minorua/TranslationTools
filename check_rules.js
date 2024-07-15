@@ -47,22 +47,6 @@ function checkTranslation_ja(s, t) {
     else if (t.indexOf('…') != -1) msg = 'ellipsis used';
     else if (s.indexOf('....') == -1 && s.indexOf('……') == -1 && t.indexOf('....') != -1) msg = '.... (4 dots) used';
 
-    if (tokenizer) {
-
-        var path = tokenizer.tokenize(t);
-        var w;
-        for (let c of path) {
-            w = c.surface_form;
-            if (isNaN(w) && c.word_type == 'UNKNOWN') {
-                if (s.indexOf(w) == -1) {
-                    token[w] = (token[w] === undefined) ? 1 : token[w] + 1;
-                }
-            }
-        }
-        console.log(path);
-
-    }
-
     if (msg) {
 
         return {

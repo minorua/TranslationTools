@@ -10,7 +10,7 @@ const LANG_LIST = [
 ];
 
 var setProgress, setStatusText;
-var tokenizer, token;
+var tokenizer;
 
 window.addEventListener('load', function () {
 
@@ -140,24 +140,14 @@ window.addEventListener('load', function () {
 
     });
 
-    setStatusText('Loading tokenizer...');
+    const url = new URL(window.location.href),
+          params = url.searchParams;
 
-    kuromoji.builder({dicPath: './lib/kuromoji.js/dict'}).build(function (err, tknzr) {
+    if (params.has('useTokenizer')) {
 
-        if (err) {
+        loadTokenizer();
 
-            console.warn('Failed to load tokenizer.');
-
-        }
-        else {
-
-            tokenizer = tknzr;
-
-        }
-
-        setStatusText('Ready!', 1000);
-
-    });
+    }
 
 });
 
@@ -238,8 +228,6 @@ function loadFiles(files) {
 
     document.getElementById('panel').style.display = 'none';
 
-    token = {};
-
     let result = Promise.resolve();
 
     for (const file of files) {
@@ -255,26 +243,66 @@ function loadFiles(files) {
 
             return v.check();
 
-        }).then(() => {     // TODO: remove
+        }).then(() => {
 
             v.filename = file.name;
             writeResult(v);
 
         });
-    }
-    result = result.then(() => {
-        console.log('Unknown words:');
-        console.log(token);
 
-        let words = [];
-        for (let k of Object.keys(token).sort()) {
-            words.push('<div>' + k.replace('<', '&lt;').replace('>', '&gt') + ': ' + token[k] + '</div>');
+        if (tokenizer) {
+            result = result.then(() => {
+                console.log('Unknown words:');
+                console.log(v.token);
+
+                let words = [];
+                for (let k of Object.keys(v.token).sort()) {
+                    words.push('<div>' + k.replace('<', '&lt;').replace('>', '&gt') + ': ' + v.token[k] + '</div>');
+                }
+
+                document.getElementById('result').innerHTML += '<div>' + words.join('') + '</div>';
+            });
         }
 
-        document.getElementById('result').innerHTML += '<div>' + words.join('') + '</div>';
+        result = result.then(() => {
 
-        setStatusText('Completed!', 2000);
+            setStatusText('Completed!', 2000);
+
+        });
+
+    }
+
+}
+
+
+function loadTokenizer() {
+
+    return new Promise((resolve, reject) => {
+
+        setStatusText('Loading tokenizer...');
+
+        kuromoji.builder({dicPath: './lib/kuromoji.js/dict'}).build(function (err, tknzr) {
+
+            if (err) {
+
+                console.warn('Failed to load tokenizer.');
+
+            }
+            else {
+
+                tokenizer = tknzr;
+
+                setProgress(1);
+                setStatusText('Tokenizer loaded.', 1000);
+
+            }
+
+            resolve();
+
+        });
+
     });
+
 }
 
 
@@ -298,6 +326,8 @@ class Checker {
         this.progressFunc = progressFunc;
 
         this.contexts = [];
+
+        this.token = {};
     }
 
     load(xmlStr) {
@@ -386,6 +416,22 @@ class Checker {
                     result.translation = translation.textContent;
 
                     this.results[result.level].push(result);
+                }
+
+                if (tokenizer) {
+
+                    var path = tokenizer.tokenize(translation.textContent);
+                    var w;
+                    for (let c of path) {
+                        w = c.surface_form;
+                        if (isNaN(w) && c.word_type == 'UNKNOWN') {
+                            if (source.textContent.indexOf(w) == -1) {
+                                this.token[w] = (this.token[w] === undefined) ? 1 : this.token[w] + 1;
+                            }
+                        }
+                    }
+                    console.log(path);
+
                 }
             }
             else if (type == 'unfinished') {
