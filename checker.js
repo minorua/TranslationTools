@@ -154,12 +154,25 @@ window.addEventListener('load', function () {
 
 function writeResult(checker) {
 
+    const branch = checker.branch || 'master';
+
     const escape = function (str) {
 
         return str.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;');
 
     };
 
+    const makeUrl = function (filename, line) {
+
+        const url = 'https://github.com/qgis/QGIS/blob/' + branch + filename.replace('../', '/');
+        // https://github.com/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
+        // https://github.dev/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
+
+        return (line === undefined) ? url : url + '#L' + line;
+
+    }
+
+    // grouped by error/warning message
     const htmlGroupdedByMsg = function (res_list) {
 
         let html = '';
@@ -186,9 +199,16 @@ function writeResult(checker) {
             html += '<ul>';
             for (let r of items) {
 
-                html += '<li><div>[' + r.context + ']</div>';
+                html += '<li>';
                 html += '<div>' + escape(r.source) + '</div>';
-                html += '<div>' + escape(r.translation) + '</div></li>';
+                html += '<div>' + escape(r.translation) + '</div>';
+                html += '<div>[' + r.context + ']';
+                if (r.location) {
+
+                    html += ' <a href="' + makeUrl(r.location.filename, r.location.line) + '" target="_blank">' + r.location.filename + '</a>';
+
+                }
+                html += '</div></li>';
 
             }
             html += '</ul>';
@@ -402,11 +422,12 @@ class Checker {
             untranslatedCount: 0
         };
 
-        let source, translation, type, result;
+        let source, translation, location, type, result;
 
         for (const message of messages) {
             source = message.getElementsByTagName('source')[0];
             translation = message.getElementsByTagName('translation')[0];
+            location = message.getElementsByTagName('location')[0];
             type = translation.getAttribute('type');
             if (type === null) {
                 result = this.checkFunc(source.textContent, translation.textContent);
@@ -414,6 +435,12 @@ class Checker {
                     result.context = name;
                     result.source = source.textContent;
                     result.translation = translation.textContent;
+                    if (location) {
+                        result.location = {
+                            filename: location.getAttribute('filename'),
+                            line: location.getAttribute('line')
+                        };
+                    }
 
                     this.results[result.level].push(result);
                 }

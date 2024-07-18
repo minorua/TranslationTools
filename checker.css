@@ -104,6 +104,42 @@ h4 > span.count {
 
 }
 
+section.error ul, section.warning ul {
+
+    list-style-type: none;
+    padding-left: 10px;
+
+}
+
+section.error li, section.warning li {
+
+    margin-bottom: 1.5em;
+
+}
+
+section.error li > div:first-child, section.warning li > div:first-child {
+
+    padding: 0.2em;
+    background-color: #DDDDDD;
+
+}
+
+section.error li > div:nth-child(2), section.warning li > div:nth-child(2) {
+
+    padding: 0.2em;
+    background-color: white;
+
+}
+
+section.error li > div:last-child, section.warning li > div:last-child {
+
+    padding: 0.2em 0.8em;
+    text-align: right;
+    font-size: xx-small;
+    background-color: #DDDDDD;
+
+}
+
 #footer {
 
     border-top: 1px solid #4682B4;
