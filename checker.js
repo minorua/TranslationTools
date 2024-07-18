@@ -127,7 +127,9 @@ window.addEventListener('load', function () {
 
             const v = new Checker(setProgress);
 
-            v.filename = filename + ' in "' + branch + '" branch';
+            v.branch = branch;
+            v.filename = filename;
+
             v.load(xmlStr);
             v.check().then(() => {
 
@@ -218,9 +220,12 @@ function writeResult(checker) {
         return html;
     };
 
-    let html = '';
+    let html = '',
+        sourceTitle = checker.filename || 'Unknown';
 
-    html += '<h2>' + (checker.filename || 'Unknown') + '</h2>';
+    if (checker.branch) sourceTitle += ' in "' + checker.branch + '" branch';
+
+    html += '<h2>' + sourceTitle + '</h2>';
 
     html += '<section class="stats">';
     html += '<h3>Statistics</h3>';
