@@ -1,6 +1,6 @@
 const ERROR_LEVEL = {
     WARNING: 1,
-    CRITICAL: 2
+    ERROR: 2
 };
 
 const LANG_LIST = [
@@ -235,8 +235,8 @@ function writeResult(checker) {
     html += '</section>';
 
     html += '<section class="error">';
-    html += '<h3>Critical Errors <span class="count">(' + checker.results[ERROR_LEVEL.CRITICAL].length + ')</span></h3>';
-    html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.CRITICAL]);
+    html += '<h3>Errors <span class="count">(' + checker.results[ERROR_LEVEL.ERROR].length + ')</span></h3>';
+    html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.ERROR]);
     html += '</section>';
 
     html += '<section class="warning">';
@@ -338,7 +338,7 @@ class Checker {
         this.CONTEXTS_PER_JOB = 10;
 
         this.results = [];
-        this.results[ERROR_LEVEL.CRITICAL] = [];
+        this.results[ERROR_LEVEL.ERROR] = [];
         this.results[ERROR_LEVEL.WARNING] = [];
 
         this.stats = {
@@ -428,6 +428,7 @@ class Checker {
         };
 
         let source, translation, location, type, result;
+        let errMsgs, warnMsgs;
 
         for (const message of messages) {
             source = message.getElementsByTagName('source')[0];
@@ -435,19 +436,43 @@ class Checker {
             location = message.getElementsByTagName('location')[0];
             type = translation.getAttribute('type');
             if (type === null) {
-                result = this.checkFunc(source.textContent, translation.textContent);
-                if (result) {
-                    result.context = name;
-                    result.source = source.textContent;
-                    result.translation = translation.textContent;
+
+                [errMsgs, warnMsgs] = this.checkFunc(source.textContent, translation.textContent);
+
+                if (errMsgs.length || warnMsgs.length) {
+
+                    result = {
+                        context: name,
+                        source: source.textContent,
+                        translation: translation.textContent
+                    };
+
+                    if (errMsgs.length) {
+
+                        result.level = ERROR_LEVEL.ERROR;
+                        result.msg = errMsgs[0];
+
+                    }
+                    else {
+
+                        result.level = ERROR_LEVEL.WARNING;
+                        result.msg = warnMsgs[0];
+
+                    }
+
                     if (location) {
+
                         result.location = {
+
                             filename: location.getAttribute('filename'),
                             line: location.getAttribute('line')
+
                         };
+
                     }
 
                     this.results[result.level].push(result);
+
                 }
 
                 if (tokenizer) {
@@ -465,6 +490,7 @@ class Checker {
                     console.log(path);
 
                 }
+
             }
             else if (type == 'unfinished') {
                 stats.untranslatedCount++;

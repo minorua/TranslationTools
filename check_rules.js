@@ -1,96 +1,97 @@
 
-const ph1 = `%[0-9a-z]`;
-const ph2 = `{.*?}`;
+const ph1 = `{\S*?}`;
+const ph2 = `%[0-9a-z]`;
+
+
 
 function checkTranslation(s, t) {
 
-    let msg = '';
+    const errMsgs = [], warnMsgs = [];
+    let a, b;
 
-    // critical errors
-    if ([...s.matchAll(ph1)].sort().toString() != [...t.matchAll(ph1)].sort().toString()) msg = 'placeholders unmatched (%)';
-    else if ([...s.matchAll(ph2)].sort().toString() != [...t.matchAll(ph2)].sort().toString()) msg = 'placeholders unmatched ({})';
+    // Test 1
+    a = [...s.matchAll(ph1)].sort().toString();
 
-    if (msg) {
+    if (a) {
 
-        return {
-            level: ERROR_LEVEL.CRITICAL,
-            msg: msg
-        };
+        b = [...t.matchAll(ph1)].sort().toString();
 
-    }
+        if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
 
-    // warnings
-    if (t.trim() == '' && s.trim() != '') msg = 'empty translation';
-    else if (s.slice(-3) == '...' && t.slice(-3) != '...') msg = 'missing ... (3 dots)';
+            errMsgs.push('There are missing placeholder(s): {}');
 
-    if (msg) {
+        }
+        else if (a != b) {
 
-        return {
-            level: ERROR_LEVEL.WARNING,
-            msg: msg
-        };
+            warnMsgs.push("The number of placeholders doesn't match: {}");
+
+        }
 
     }
 
-    return null;
+    // Test 2
+    a = [...s.matchAll(ph2)].sort().toString();
+
+    if (a) {
+
+        b = [...t.matchAll(ph2)].sort().toString();
+
+        if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
+
+            errMsgs.push('There are missing placeholder(s): %');
+
+        }
+        else if (a != b) {
+
+            warnMsgs.push("The number of placeholders doesn't match: %");
+
+        }
+
+    }
+
+    if (t.trim() == '' && s.trim() != '') {
+
+        warnMsgs.push('Translation is empty.');
+
+    }
+
+    if (s.slice(-3) == '...') {
+
+        if (t.slice(-3) != '...' && t.slice(-1) != '…') {
+
+            warnMsgs.push('There are missing three dots (...) at the end.');
+
+        }
+
+    }
+
+    return [errMsgs, warnMsgs];
+
 }
 
 
 function checkTranslation_ja(s, t) {
 
-    let result = checkTranslation(s, t);
-    if (result) return result;
+    const [errMsgs, warnMsgs] = checkTranslation(s, t);
 
-    let msg = '';
+    if (s.slice(-1) == '…' && t.slice(-3) != '...') {
 
-    if (s.slice(-1) == '…' && t.slice(-3) != '...') msg = 'missing ... (must be 3 dots)';
-    else if (t.indexOf('…') != -1) msg = 'ellipsis used';
-    else if (s.indexOf('....') == -1 && s.indexOf('……') == -1 && t.indexOf('....') != -1) msg = '.... (4 dots) used';
-
-    if (msg) {
-
-        return {
-            level: ERROR_LEVEL.WARNING,
-            msg: msg
-        };
+        warnMsgs.push('There are missing 3 dots at the end (must be 3 dots).');
 
     }
 
-    return null;
+    if (t.indexOf('…') != -1) {
+
+        warnMsgs.push('There is an ellipsis character (…).');
+
+    }
+
+    if (s.indexOf('....') == -1 && s.indexOf('……') == -1 && t.indexOf('....') != -1) {
+
+        warnMsgs.push('There is unexpected four dots (....).');
+
+    }
+
+    return [errMsgs, warnMsgs];
+
 }
-
-
-/*
-function checkTranslation_??(s, t) {
-
-    let msg = '';
-
-    // critical errors
-
-
-    if (msg) {
-
-        return {
-            level: ERROR_LEVEL.CRITICAL,
-            msg: msg
-        };
-
-    }
-
-    let result = checkTranslation(s, t);
-    if (result) return result;
-
-    // warnings
-
-    if (msg) {
-
-        return {
-            level: ERROR_LEVEL.WARNING,
-            msg: msg
-        };
-
-    }
-
-    return null;
-}
-*/
