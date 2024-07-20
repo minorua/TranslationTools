@@ -244,6 +244,25 @@ function writeResult(checker) {
     html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.WARNING]);
     html += '</section>';
 
+    if (Object.keys(checker.token).length) {
+
+        console.log('Unknown words:');
+        console.log(checker.token);
+
+        let words = [];
+        for (let k of Object.keys(checker.token).sort()) {
+
+            words.push('<div>' + k.replace('<', '&lt;').replace('>', '&gt') + ': ' + checker.token[k] + '</div>');
+
+        }
+
+        html += '<section class="token">';
+        html += '<h3>Tokens</h3>';
+        html += words.join('');
+        html += '</section>';
+
+    }
+
     document.getElementById('result').innerHTML += html;
 
 }
@@ -272,24 +291,6 @@ function loadFiles(files) {
 
             v.filename = file.name;
             writeResult(v);
-
-        });
-
-        if (tokenizer) {
-            result = result.then(() => {
-                console.log('Unknown words:');
-                console.log(v.token);
-
-                let words = [];
-                for (let k of Object.keys(v.token).sort()) {
-                    words.push('<div>' + k.replace('<', '&lt;').replace('>', '&gt') + ': ' + v.token[k] + '</div>');
-                }
-
-                document.getElementById('result').innerHTML += '<div>' + words.join('') + '</div>';
-            });
-        }
-
-        result = result.then(() => {
 
             setStatusText('Completed!', 2000);
 
