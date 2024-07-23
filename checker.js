@@ -125,18 +125,22 @@ window.addEventListener('load', function () {
             setStatusText('Checking translations...');
             setProgress(0);
 
-            const v = new Checker(setProgress);
+            setTimeout(() => {
 
-            v.branch = branch;
-            v.filename = filename;
+                const v = new Checker(setProgress);
 
-            v.load(xmlStr);
-            v.check().then(() => {
+                v.branch = branch;
+                v.filename = filename;
 
-                writeResult(v);
-                setStatusText();
+                v.load(xmlStr);
+                v.check().then(() => {
 
-            });
+                    writeResult(v);
+                    setStatusText('Completed!', 2000);
+
+                });
+
+            }, 0);
 
         }).catch((e) => console.error(e));
 
@@ -300,7 +304,7 @@ function loadFiles(files) {
 
         result = result.then(() => {
 
-            setStatusText('Parsing ' + file.name + '...');
+            setStatusText('Checking translations in ' + file.name + '...');
             return v.loadFile(file);
 
         }).then(() => {
