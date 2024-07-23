@@ -157,6 +157,12 @@ section.error li > div:last-child, section.warning li > div:last-child {
 
 }
 
+#panel.dropready {
+
+    border: 3px solid skyblue;
+
+}
+
 .method {
 
     color: gray;

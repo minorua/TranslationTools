@@ -38,18 +38,19 @@ window.addEventListener('load', function () {
         document.getElementById('lang').options.add(new Option(lang, lang, false));
     });
 
-    const dz = document.getElementById('open_button');
 
-    dz.addEventListener('click', () => {
+    const openBtn = document.getElementById('open_button');
+    openBtn.addEventListener('click', () => {
         let btn = document.createElement('input');
         btn.type = 'file';
         btn.onchange = (e) => {
-            dz.style.display = 'none';
+            openBtn.style.display = 'none';
             loadFiles(e.target.files);
         };
         btn.click();
     });
 
+    const dz = document.getElementById('panel');
     dz.addEventListener('dragover', (e) => {
         e.preventDefault();
         dz.classList.add('dropready');
