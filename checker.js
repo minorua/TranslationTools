@@ -232,6 +232,26 @@ function writeResult(checker) {
     html += '<ul>';
     html += ' <li>' + checker.stats.contextCount + ' contexts, ' + checker.stats.messageCount + ' messages, ' + checker.stats.untranslatedCount + ' untranslated</li>';
     html += '</ul>';
+
+    if (checker.stats.untranslatedCount) {
+
+        html += '<div>Unfinished contexts:</div>';
+        html += '<ul>';
+
+        for (let context of checker.stats.contexts) {
+
+            if (context.untranslatedCount) {
+
+                html += ' <li>' + context.name + ': ' + context.untranslatedCount + ' of ' + context.messageCount + ' messages are untranslated.</li>';
+
+            }
+
+        }
+
+        html += '</ul>';
+
+    }
+
     html += '</section>';
 
     html += '<section class="error">';
