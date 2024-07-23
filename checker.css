@@ -82,13 +82,13 @@ h4 {
 
 section.error h4 {
 
-    background-color: rgba(255, 0, 0, 0.5)
+    background-color: rgb(255, 0, 0)
 
 }
 
 section.warning h4 {
 
-    background-color: rgba(255, 255, 0, 0.5)
+    background-color: rgb(255, 255, 0)
 
 }
 
@@ -127,7 +127,7 @@ section.error li > div:first-child, section.warning li > div:first-child {
 section.error li > div:nth-child(2), section.warning li > div:nth-child(2) {
 
     padding: 0.2em;
-    background-color: white;
+    background-color: #EEEEEE;
 
 }
 
@@ -136,7 +136,6 @@ section.error li > div:last-child, section.warning li > div:last-child {
     padding: 0.2em 0.8em;
     text-align: right;
     font-size: xx-small;
-    background-color: #DDDDDD;
 
 }
 
