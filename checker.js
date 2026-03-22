@@ -6,7 +6,7 @@ const ERROR_LEVEL = {
 const LANG_LIST = [
     'ar', 'az', 'bg', 'bs', 'ca', 'cs', 'da', 'de', 'en_US', 'es', 'et', 'eu', 'fi', 'fr',
     'gl', 'hu', 'is', 'it', 'ja', 'ko', 'lt', 'lv', 'nb', 'nl', 'pl', 'pt_BR', 'pt_PT', 'ro',
-    'ru', 'sc', 'sk', 'sv', 'tr', 'uk', 'vi', 'zh-Hans', 'zh-Hant'
+    'ru', 'sc', 'sk', 'sv', 'ta', 'tr', 'uk', 'vi', 'zh-Hans', 'zh-Hant'
 ];
 
 var setProgress, setStatusText;
