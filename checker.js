@@ -454,7 +454,6 @@ class Checker {
         };
 
         let source, translation, location, type, result;
-        let errMsgs, warnMsgs;
 
         for (const message of messages) {
             source = message.getElementsByTagName('source')[0];
@@ -463,9 +462,9 @@ class Checker {
             type = translation.getAttribute('type');
             if (type === null) {
 
-                [errMsgs, warnMsgs] = this.checkFunc(source.textContent, translation.textContent);
+                const { errors, warnings } = this.checkFunc(source.textContent, translation.textContent);
 
-                if (errMsgs.length || warnMsgs.length) {
+                if (errors.length || warnings.length) {
 
                     result = {
                         context: name,
@@ -473,16 +472,16 @@ class Checker {
                         translation: translation.textContent
                     };
 
-                    if (errMsgs.length) {
+                    if (errors.length) {
 
                         result.level = ERROR_LEVEL.ERROR;
-                        result.msg = errMsgs[0];
+                        result.msg = errors[0];
 
                     }
                     else {
 
                         result.level = ERROR_LEVEL.WARNING;
-                        result.msg = warnMsgs[0];
+                        result.msg = warnings[0];
 
                     }
 

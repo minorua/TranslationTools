@@ -7,7 +7,7 @@ const requiredTerms_ja = { "API": "API" };
 
 function checkTranslation(s, t) {
 
-    const errMsgs = [], warnMsgs = [];
+    const errors = [], warnings = [];
     let a, b;
 
     a = [...s.matchAll(bracePlaceholderPattern)].sort().toString();
@@ -18,12 +18,12 @@ function checkTranslation(s, t) {
 
         if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
 
-            errMsgs.push('There are missing placeholder(s): {}');
+            errors.push('There are missing placeholder(s): {}');
 
         }
         else if (a != b) {
 
-            warnMsgs.push("The number of placeholders doesn't match: {}");
+            warnings.push("The number of placeholders doesn't match: {}");
 
         }
 
@@ -37,12 +37,12 @@ function checkTranslation(s, t) {
 
         if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
 
-            errMsgs.push('There are missing placeholder(s): %');
+            errors.push('There are missing placeholder(s): %');
 
         }
         else if (a != b) {
 
-            warnMsgs.push("The number of placeholders doesn't match: %");
+            warnings.push("The number of placeholders doesn't match: %");
 
         }
 
@@ -50,7 +50,7 @@ function checkTranslation(s, t) {
 
     if (t.trim() == '' && s.trim() != '') {
 
-        warnMsgs.push('Translation is empty.');
+        warnings.push('Translation is empty.');
 
     }
 
@@ -58,20 +58,20 @@ function checkTranslation(s, t) {
 
         if (t.slice(-3) != '...' && t.slice(-1) != '…') {
 
-            warnMsgs.push('There are missing three dots (...) at the end.');
+            warnings.push('There are missing three dots (...) at the end.');
 
         }
 
     }
 
-    return [errMsgs, warnMsgs];
+    return { errors, warnings };
 
 }
 
 
 function checkTranslation_ja(s, t) {
 
-    const [errMsgs, warnMsgs] = checkTranslation(s, t);
+    const { errors, warnings } = checkTranslation(s, t);
 
     for (const [sourceTerm, translationTerm] of Object.entries(requiredTerms_ja)) {
 
@@ -79,7 +79,7 @@ function checkTranslation_ja(s, t) {
 
         if (sourcePattern.test(s) && !t.includes(translationTerm)) {
 
-            warnMsgs.push(`There is a missing required term: ${translationTerm}.`);
+            warnings.push(`There is a missing required term: ${translationTerm}.`);
 
         }
 
@@ -87,22 +87,22 @@ function checkTranslation_ja(s, t) {
 
     if (s.slice(-1) == '…' && t.slice(-3) != '...') {
 
-        warnMsgs.push('There are missing 3 dots at the end (must be 3 dots).');
+        warnings.push('There are missing 3 dots at the end (must be 3 dots).');
 
     }
 
     if (t.indexOf('…') != -1) {
 
-        warnMsgs.push('There is an ellipsis character (…).');
+        warnings.push('There is an ellipsis character (…).');
 
     }
 
     if (s.indexOf('....') == -1 && s.indexOf('……') == -1 && t.indexOf('....') != -1) {
 
-        warnMsgs.push('There is unexpected four dots (....).');
+        warnings.push('There is unexpected four dots (....).');
 
     }
 
-    return [errMsgs, warnMsgs];
+    return { errors, warnings };
 
 }
