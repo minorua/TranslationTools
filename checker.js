@@ -10,8 +10,13 @@ const LANG_LIST = [
     'ru', 'sc', 'sk', 'sv', 'ta', 'tr', 'uk', 'vi', 'zh-Hans', 'zh-Hant'
 ];
 
+const MAX_RESULTS = 300;
+
 var setProgress, setStatusText;
 var tokenizer;
+
+let sourceBranch = 'master';
+const searchableMessages = [];
 
 window.addEventListener('load', function () {
 
@@ -37,6 +42,28 @@ window.addEventListener('load', function () {
 
     LANG_LIST.forEach(function (lang) {
         document.getElementById('lang').options.add(new Option(lang, lang, false));
+    });
+
+    const searchInput = document.getElementById('search_input');
+    const searchPopup = document.getElementById('search_popup');
+
+    searchInput.addEventListener('input', () => {
+        showSearchResults(searchInput.value, searchPopup, searchInput);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            searchPopup.classList.remove('open');
+            searchInput.setAttribute('aria-expanded', 'false');
+            searchInput.blur();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#search')) {
+            searchPopup.classList.remove('open');
+            searchInput.setAttribute('aria-expanded', 'false');
+        }
     });
 
 
@@ -70,8 +97,8 @@ window.addEventListener('load', function () {
 
     fetchButton.addEventListener('click', () => {
 
-        const lang = document.getElementById('lang').value,
-              branch = document.getElementById('branch').value;
+        const lang = document.getElementById('lang').value;
+        const branch = document.getElementById('branch').value;
 
         if (!lang || !branch) {
 
@@ -80,13 +107,13 @@ window.addEventListener('load', function () {
 
         }
 
+        const filename = 'qgis_' + lang + '.ts';
+        const url = 'https://raw.githubusercontent.com/qgis/QGIS/' + branch + '/i18n/' + filename;
+        sourceBranch = branch;
+
         document.getElementById('panel').style.display = 'none';
 
-        const filename = 'qgis_' + lang + '.ts';
-
         setStatusText('Fetching ' + filename + ' in "' + branch + '" branch from GitHub...');
-
-        const url = 'https://raw.githubusercontent.com/qgis/QGIS/' + branch + '/i18n/' + filename;
 
         // download progress:
         // https://developer.mozilla.org/ja/docs/Web/API/Streams_API/Using_readable_streams
@@ -130,7 +157,6 @@ window.addEventListener('load', function () {
             setTimeout(() => {
 
                 const v = new Checker(setProgress);
-
                 v.branch = branch;
                 v.filename = filename;
 
@@ -160,25 +186,85 @@ window.addEventListener('load', function () {
 });
 
 
+function showSearchResults(query, popup, input) {
+
+    popup.replaceChildren();
+
+    const term = query.trim().toLocaleLowerCase();
+    if (!term) {
+        popup.classList.remove('open');
+        input.setAttribute('aria-expanded', 'false');
+        return;
+    }
+
+    const matches = searchableMessages.filter((message) =>
+        message.source.toLocaleLowerCase().includes(term) ||
+        message.translation.toLocaleLowerCase().includes(term)
+    );
+
+    if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'search-empty';
+        empty.textContent = 'No matching messages.';
+        popup.appendChild(empty);
+    }
+    else {
+        for (const message of matches.slice(0, MAX_RESULTS)) {
+            const item = document.createElement('div');
+            item.className = 'search-result';
+            item.setAttribute('role', 'option');
+
+            const source = document.createElement('div');
+            source.textContent = message.source;
+
+            const translation = document.createElement('div');
+            translation.textContent = message.translation;
+
+            const location_link = (message.location) ? '<a href="' + makeUrl(message.location.filename, message.location.line) + '" target="_blank">' + message.location.filename + '</a>' : '';
+
+            const details = document.createElement('div');
+            details.innerHTML = [message.context, location_link].filter(Boolean).join(' - ');
+
+            item.append(source, translation, details);
+            popup.appendChild(item);
+        }
+
+        if (matches.length > MAX_RESULTS) {
+            const more = document.createElement('div');
+            more.className = 'search-more';
+            more.textContent = `Showing ${MAX_RESULTS} of ${matches.length} matches.`;
+            popup.appendChild(more);
+        }
+    }
+
+    popup.classList.add('open');
+    input.setAttribute('aria-expanded', 'true');
+
+}
+
+
+function makeUrl(filepath, line=undefined, branch=undefined) {
+
+    branch = branch || sourceBranch;
+
+    const url = 'https://github.com/qgis/QGIS/blob/' + branch + filepath.replace('../', '/');
+    // https://github.com/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
+    // https://github.dev/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
+
+    return (line === null || line === undefined) ? url : url + '#L' + line;
+
+}
+
+
 function writeResult(checker) {
 
-    const branch = checker.branch || 'master';
+    searchableMessages.push(...checker.messages);
 
     const escape = function (str) {
 
         return str.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;');
 
     };
-
-    const makeUrl = function (filename, line) {
-
-        const url = 'https://github.com/qgis/QGIS/blob/' + branch + filename.replace('../', '/');
-        // https://github.com/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
-        // https://github.dev/qgis/QGIS/blob/master/src/core/qgis.cpp#L178
-
-        return (line === undefined) ? url : url + '#L' + line;
-
-    }
 
     // grouped by error/warning message
     const htmlGroupdedByMsg = function (res_list) {
@@ -213,7 +299,7 @@ function writeResult(checker) {
                 html += '<div>[' + r.context + ']';
                 if (r.location) {
 
-                    html += ' <a href="' + makeUrl(r.location.filename, r.location.line) + '" target="_blank">' + r.location.filename + '</a>';
+                    html += ' <a href="' + makeUrl(r.location.filename, r.location.line, checker.branch) + '" target="_blank">' + r.location.filename + '</a>';
 
                 }
                 html += '</div></li>';
@@ -385,6 +471,8 @@ class Checker {
 
         this.contexts = [];
 
+        this.messages = [];
+
         this.token = {};
     }
 
@@ -471,6 +559,10 @@ class Checker {
                 source: source.textContent,
                 translation: translation.textContent
             };
+
+            if (type === null || type === 'unfinished') {
+                this.messages.push(result);
+            }
 
             if (location) {
 
