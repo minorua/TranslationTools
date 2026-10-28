@@ -92,6 +92,12 @@ section.warning h4 {
 
 }
 
+section.untranslated h4 {
+
+    background-color: rgb(128, 128, 255);
+
+}
+
 h4 > span.count {
 
     display: inline-block;
@@ -104,34 +110,34 @@ h4 > span.count {
 
 }
 
-section.error ul, section.warning ul {
+section.error ul, section.warning ul, section.untranslated ul {
 
     list-style-type: none;
     padding-left: 10px;
 
 }
 
-section.error li, section.warning li {
+section.error li, section.warning li, section.untranslated li {
 
     margin-bottom: 1.5em;
 
 }
 
-section.error li > div:first-child, section.warning li > div:first-child {
+section.error li > div:first-child, section.warning li > div:first-child, section.untranslated li > div:first-child {
 
     padding: 0.2em;
     background-color: #DDDDDD;
 
 }
 
-section.error li > div:nth-child(2), section.warning li > div:nth-child(2) {
+section.error li > div:nth-child(2), section.warning li > div:nth-child(2), section.untranslated li > div:nth-child(2) {
 
     padding: 0.2em;
     background-color: #EEEEEE;
 
 }
 
-section.error li > div:last-child, section.warning li > div:last-child {
+section.error li > div:last-child, section.warning li > div:last-child, section.untranslated li > div:last-child {
 
     padding: 0.2em 0.8em;
     text-align: right;

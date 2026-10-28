@@ -1,6 +1,7 @@
 const ERROR_LEVEL = {
     WARNING: 1,
-    ERROR: 2
+    ERROR: 2,
+    UNTRANSLATED: -1
 };
 
 const LANG_LIST = [
@@ -269,6 +270,11 @@ function writeResult(checker) {
     html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.WARNING]);
     html += '</section>';
 
+    html += '<section class="untranslated">';
+    html += '<h3>Untranslated <span class="count">(' + checker.results[ERROR_LEVEL.UNTRANSLATED].length + ')</span></h3>';
+    html += htmlGroupdedByMsg(checker.results[ERROR_LEVEL.UNTRANSLATED]);
+    html += '</section>';
+
     if (Object.keys(checker.token).length) {
 
         console.log('Unknown words:');
@@ -366,6 +372,7 @@ class Checker {
         this.results = [];
         this.results[ERROR_LEVEL.ERROR] = [];
         this.results[ERROR_LEVEL.WARNING] = [];
+        this.results[ERROR_LEVEL.UNTRANSLATED] = [];
 
         this.stats = {
             contexts: [],
@@ -453,24 +460,35 @@ class Checker {
             untranslatedCount: 0
         };
 
-        let source, translation, location, type, result;
-
         for (const message of messages) {
-            source = message.getElementsByTagName('source')[0];
-            translation = message.getElementsByTagName('translation')[0];
-            location = message.getElementsByTagName('location')[0];
-            type = translation.getAttribute('type');
+            const source = message.getElementsByTagName('source')[0];
+            const translation = message.getElementsByTagName('translation')[0];
+            const location = message.getElementsByTagName('location')[0];
+            const type = translation.getAttribute('type');
+
+            const result = {
+                context: name,
+                source: source.textContent,
+                translation: translation.textContent
+            };
+
+            if (location) {
+
+                result.location = {
+
+                    filename: location.getAttribute('filename'),
+                    line: location.getAttribute('line')
+
+                };
+
+            }
+
             if (type === null) {
+                // check a translated message
 
                 const { errors, warnings } = this.checkFunc(source.textContent, translation.textContent);
 
                 if (errors.length || warnings.length) {
-
-                    result = {
-                        context: name,
-                        source: source.textContent,
-                        translation: translation.textContent
-                    };
 
                     if (errors.length) {
 
@@ -482,17 +500,6 @@ class Checker {
 
                         result.level = ERROR_LEVEL.WARNING;
                         result.msg = warnings[0];
-
-                    }
-
-                    if (location) {
-
-                        result.location = {
-
-                            filename: location.getAttribute('filename'),
-                            line: location.getAttribute('line')
-
-                        };
 
                     }
 
@@ -518,6 +525,11 @@ class Checker {
 
             }
             else if (type == 'unfinished') {
+                result.level = ERROR_LEVEL.UNTRANSLATED;
+                result.msg = "Untranslated.";
+
+                this.results[result.level].push(result);
+
                 stats.untranslatedCount++;
             }
         }
