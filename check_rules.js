@@ -1,6 +1,6 @@
 
-const ph1 = `{\S*?}`;
-const ph2 = `%[0-9a-z]`;
+const bracePlaceholderPattern = `{\S*?}`;
+const percentPlaceholderPattern = `%[0-9a-z]`;
 
 const requiredTerms_ja = { "API": "API" };
 
@@ -10,12 +10,11 @@ function checkTranslation(s, t) {
     const errMsgs = [], warnMsgs = [];
     let a, b;
 
-    // Test 1
-    a = [...s.matchAll(ph1)].sort().toString();
+    a = [...s.matchAll(bracePlaceholderPattern)].sort().toString();
 
     if (a) {
 
-        b = [...t.matchAll(ph1)].sort().toString();
+        b = [...t.matchAll(bracePlaceholderPattern)].sort().toString();
 
         if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
 
@@ -30,12 +29,11 @@ function checkTranslation(s, t) {
 
     }
 
-    // Test 2
-    a = [...s.matchAll(ph2)].sort().toString();
+    a = [...s.matchAll(percentPlaceholderPattern)].sort().toString();
 
     if (a) {
 
-        b = [...t.matchAll(ph2)].sort().toString();
+        b = [...t.matchAll(percentPlaceholderPattern)].sort().toString();
 
         if (new Set(a.split(',')).difference(new Set(b.split(','))).size) {
 
