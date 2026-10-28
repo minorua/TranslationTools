@@ -2,6 +2,7 @@
 const ph1 = `{\S*?}`;
 const ph2 = `%[0-9a-z]`;
 
+const requiredTerms_ja = { "API": "API" };
 
 
 function checkTranslation(s, t) {
@@ -73,6 +74,18 @@ function checkTranslation(s, t) {
 function checkTranslation_ja(s, t) {
 
     const [errMsgs, warnMsgs] = checkTranslation(s, t);
+
+    for (const [sourceTerm, translationTerm] of Object.entries(requiredTerms_ja)) {
+
+        const sourcePattern = new RegExp(`\\b${sourceTerm}\\b`, "i");
+
+        if (sourcePattern.test(s) && !t.includes(translationTerm)) {
+
+            warnMsgs.push(`There is a missing required term: ${translationTerm}.`);
+
+        }
+
+    }
 
     if (s.slice(-1) == '…' && t.slice(-3) != '...') {
 
