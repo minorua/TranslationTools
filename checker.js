@@ -46,9 +46,17 @@ window.addEventListener('load', function () {
 
     const searchInput = document.getElementById('search_input');
     const searchPopup = document.getElementById('search_popup');
+    const regexSearchButton = document.getElementById('regex_search_button');
+    let regexSearchEnabled = false;
 
     searchInput.addEventListener('input', () => {
-        showSearchResults(searchInput.value, searchPopup, searchInput);
+        showSearchResults(searchInput.value, searchPopup, searchInput, regexSearchEnabled);
+    });
+
+    regexSearchButton.addEventListener('click', () => {
+        regexSearchEnabled = !regexSearchEnabled;
+        regexSearchButton.setAttribute('aria-pressed', String(regexSearchEnabled));
+        showSearchResults(searchInput.value, searchPopup, searchInput, regexSearchEnabled);
     });
 
     searchInput.addEventListener('keydown', (e) => {
@@ -186,7 +194,7 @@ window.addEventListener('load', function () {
 });
 
 
-function showSearchResults(query, popup, input) {
+function showSearchResults(query, popup, input, regexSearchEnabled) {
 
     popup.replaceChildren();
 
@@ -197,10 +205,32 @@ function showSearchResults(query, popup, input) {
         return;
     }
 
-    const matches = searchableMessages.filter((message) =>
-        message.source.toLocaleLowerCase().includes(term) ||
-        message.translation.toLocaleLowerCase().includes(term)
-    );
+    let matches;
+    if (regexSearchEnabled) {
+        let pattern;
+        try {
+            pattern = new RegExp(query, 'i');
+        }
+        catch (error) {
+            const invalid = document.createElement('div');
+            invalid.className = 'search-empty error';
+            invalid.textContent = `Invalid regular expression: ${error.message}`;
+            popup.appendChild(invalid);
+            popup.classList.add('open');
+            input.setAttribute('aria-expanded', 'true');
+            return;
+        }
+
+        matches = searchableMessages.filter((message) =>
+            pattern.test(message.source) || pattern.test(message.translation)
+        );
+    }
+    else {
+        matches = searchableMessages.filter((message) =>
+            message.source.toLocaleLowerCase().includes(term) ||
+            message.translation.toLocaleLowerCase().includes(term)
+        );
+    }
 
     if (!matches.length) {
         const empty = document.createElement('div');

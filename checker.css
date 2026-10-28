@@ -57,6 +57,8 @@ body {
 #search {
 
     position: relative;
+    display: flex;
+    align-items: center;
     margin-left: auto;
 
 }
@@ -69,6 +71,26 @@ body {
     padding: 0.45em 0.65em;
     border: 1px solid #9bb2c0;
     border-radius: 3px;
+
+}
+
+#regex_search_button {
+
+    margin-left: 4px;
+    width: 2em;
+    height: 2em;
+    border: 1px solid #9bb2c0;
+    border-radius: 3px;
+    color: #124766;
+    background-color: white;
+    cursor: pointer;
+
+}
+
+#regex_search_button[aria-pressed="true"] {
+
+    color: white;
+    background-color: #4682B4;
 
 }
 
@@ -101,6 +123,12 @@ body {
     padding: 0.65em 0.8em;
     border-bottom: 1px solid #ddd;
     overflow-wrap: anywhere;
+
+}
+
+.search-empty.error {
+
+    color: #b00020;
 
 }
 
