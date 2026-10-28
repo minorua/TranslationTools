@@ -47,7 +47,60 @@ window.addEventListener('load', function () {
     const searchInput = document.getElementById('search_input');
     const searchPopup = document.getElementById('search_popup');
     const regexSearchButton = document.getElementById('regex_search_button');
+    const selectionSearchButton = document.getElementById('selection_search_button');
     let regexSearchEnabled = false;
+    let selectedSearchText = '';
+    let selectionSearchTimeout;
+
+    document.addEventListener('selectionchange', () => {
+        clearTimeout(selectionSearchTimeout);
+        selectionSearchButton.hidden = true;
+
+        const selection = window.getSelection();
+        const result = document.getElementById('result');
+        if (!selection || selection.isCollapsed || !result.contains(selection.anchorNode) ||
+            !result.contains(selection.focusNode) || !selection.toString().trim()) {
+            selectedSearchText = '';
+            return;
+        }
+
+        const selectedText = selection.toString().trim();
+        selectionSearchTimeout = setTimeout(() => {
+            const currentSelection = window.getSelection();
+            if (!currentSelection || currentSelection.isCollapsed ||
+                !result.contains(currentSelection.anchorNode) || !result.contains(currentSelection.focusNode) ||
+                currentSelection.toString().trim() !== selectedText) {
+                return;
+            }
+
+            selectedSearchText = selectedText;
+            selectionSearchButton.hidden = false;
+
+            const bounds = currentSelection.getRangeAt(0).getBoundingClientRect();
+            const buttonBounds = selectionSearchButton.getBoundingClientRect();
+            const left = Math.min(bounds.right, window.innerWidth - buttonBounds.width);
+            const top = Math.min(bounds.top - 24, window.innerHeight - buttonBounds.height - 24);
+            selectionSearchButton.style.left = `${Math.max(8, left)}px`;
+            selectionSearchButton.style.top = `${Math.max(8, top)}px`;
+        }, 300);
+    });
+
+    selectionSearchButton.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+    });
+
+    selectionSearchButton.addEventListener('click', () => {
+        if (!selectedSearchText) return;
+
+        clearTimeout(selectionSearchTimeout);
+        selectionSearchButton.hidden = true;
+        searchInput.value = selectedSearchText;
+        searchInput.focus();
+
+        setTimeout(() => {
+            showSearchResults(searchInput.value, searchPopup, searchInput, regexSearchEnabled);
+        }, 300);
+    });
 
     searchInput.addEventListener('input', () => {
         showSearchResults(searchInput.value, searchPopup, searchInput, regexSearchEnabled);
